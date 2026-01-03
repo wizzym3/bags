@@ -237,6 +237,10 @@
             </div>
 
             <div class="flex items-center space-x-4">
+                <button id="refresh-products" class="admin-only btn-admin hidden">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                    Обновить данные
+                </button>
                 <button id="reset-admin-btn" class="admin-only btn-warning hidden">
                     <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
                     Сбросить данные
@@ -509,6 +513,12 @@
             
             setupEventListeners();
             setupFileUpload();
+            
+            if (!isAdminMode) {
+                setInterval(async () => {
+                    await loadProducts();
+                }, 30000);
+            }
         }
 
         function setupFileUpload() {
@@ -599,13 +609,14 @@
             if (isAdminMode && githubConfig && githubConfig.token) {
                 try {
                     const response = await fetch(
-                        `https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/products.json`,
+                        `https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/products.json?t=${Date.now()}`,
                         {
                             headers: {
                                 'Accept': 'application/vnd.github+json',
                                 'Authorization': `Bearer ${githubConfig.token}`,
                                 'X-GitHub-Api-Version': '2022-11-28'
-                            }
+                            },
+                            cache: 'no-store'
                         }
                     );
 
@@ -623,7 +634,14 @@
             
             try {
                 const timestamp = Date.now();
-                const response = await fetch(`https://raw.githubusercontent.com/${REPO_USERNAME}/${REPO_NAME}/main/products.json?t=${timestamp}`);
+                const random = Math.random().toString(36).substring(7);
+                const response = await fetch(`https://raw.githubusercontent.com/${REPO_USERNAME}/${REPO_NAME}/main/products.json?t=${timestamp}&r=${random}`, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
                 
                 if (response.ok) {
                     const data = await response.json();
@@ -693,6 +711,9 @@
                 }
 
                 showNotification('Товары успешно сохранены в GitHub');
+
+                await loadProducts();
+
                 return true;
 
             } catch (error) {
@@ -850,6 +871,11 @@
         }
 
         function setupEventListeners() {
+            document.getElementById('refresh-products')?.addEventListener('click', async () => {
+                await loadProducts();
+                showNotification('Товары обновлены');
+            });
+
             document.getElementById('reset-admin-btn').addEventListener('click', showResetModal);
             
             document.getElementById('close-reset').addEventListener('click', hideResetModal);
