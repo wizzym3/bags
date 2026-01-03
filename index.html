@@ -686,7 +686,8 @@
                     sha = existingFile.sha;
                 }
 
-                const content = btoa(JSON.stringify(products, null, 2));
+                const jsonString = JSON.stringify(products, null, 2);
+                const content = btoa(unescape(encodeURIComponent(jsonString)));
 
                 const putResponse = await fetch(
                     `https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/products.json`,
@@ -707,6 +708,8 @@
                 );
 
                 if (!putResponse.ok) {
+                    const errorText = await putResponse.text();
+                    console.error('GitHub API error:', errorText);
                     throw new Error('Не удалось сохранить товары');
                 }
 
