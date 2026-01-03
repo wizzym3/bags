@@ -403,7 +403,6 @@
         </div>
     </footer>
 
-    <!-- Модальное окно товара -->
     <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div id="product-backdrop" class="absolute inset-0 bg-black/50"></div>
 
@@ -421,7 +420,6 @@
                         <img id="product-main-image" src="" alt="" class="gallery-main w-full">
                         
                         <div id="product-thumbnails" class="gallery-thumbnails">
-                            <!-- Миниатюры будут добавлены через JS -->
                         </div>
                     </div>
 
@@ -432,7 +430,6 @@
                         <div class="mb-6">
                             <h4 class="font-medium mb-3">Доступные цвета:</h4>
                             <div id="product-colors" class="flex flex-wrap gap-3">
-                                <!-- Цвета будут добавлены через JS -->
                             </div>
                             <p id="selected-color-info" class="text-sm text-gray-500 mt-2"></p>
                         </div>
@@ -502,7 +499,6 @@
         </div>
     </div>
 
-    <!-- Обновленное модальное окно админки с загрузкой файлов -->
     <div id="admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div id="admin-backdrop" class="absolute inset-0 bg-black/50"></div>
 
@@ -547,7 +543,6 @@
                                     Добавить еще фото (URL)
                                 </button>
                                 
-                                <!-- Область загрузки файлов -->
                                 <div class="mt-4">
                                     <label class="block text-sm font-medium mb-2">Или загрузите фото</label>
                                     <div id="file-upload-container" class="file-upload-container">
@@ -562,7 +557,6 @@
                                         </div>
                                     </div>
                                     <div id="uploaded-images" class="mt-3">
-                                        <!-- Загруженные фото будут отображаться здесь -->
                                     </div>
                                 </div>
                             </div>
@@ -647,8 +641,6 @@
         let uploadedImagesData = [];
 
         const SECRET_ADMIN_CODE = "bagsad";
-        const REPO_USERNAME = "wizzym3";
-        const REPO_NAME = "bags";
 
         function checkAdminMode() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -763,12 +755,10 @@
                     const file = files[i];
                     
                     if (!file.type.match('image.*')) {
-                        alert('Пожалуйста, выберите только файлы изображений (JPG, PNG, WebP)');
                         continue;
                     }
 
                     if (file.size > 5 * 1024 * 1024) {
-                        alert(`Файл "${file.name}" слишком большой. Максимальный размер: 5MB`);
                         continue;
                     }
 
@@ -798,7 +788,6 @@
         }
 
         function setupColorPickerSync() {
-            // Обработчик для изменения цвета в color picker
             document.addEventListener('input', function(e) {
                 if (e.target.classList.contains('color-picker')) {
                     const colorPicker = e.target;
@@ -806,7 +795,6 @@
                     hexInput.value = colorPicker.value.toUpperCase();
                 }
                 
-                // Также синхронизируем при изменении HEX вручную
                 if (e.target.classList.contains('color-hex')) {
                     const hexInput = e.target;
                     const colorPicker = hexInput.closest('.flex').querySelector('.color-picker');
@@ -832,47 +820,21 @@
         }
 
         async function loadProducts() {
-            if (isAdminMode && githubConfig && githubConfig.token) {
-                try {
-                    const response = await fetch(
-                        `https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/products.json?t=${Date.now()}`,
-                        {
-                            headers: {
-                                'Accept': 'application/vnd.github+json',
-                                'Authorization': `Bearer ${githubConfig.token}`,
-                                'X-GitHub-Api-Version': '2022-11-28'
-                            },
-                            cache: 'no-store'
-                        }
-                    );
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        const decodedContent = decodeBase64UTF8(data.content);
-                        const content = JSON.parse(decodedContent);
-                        products = Array.isArray(content) ? content : (content.products || []);
-                        renderProducts();
-                        return;
-                    }
-                } catch (error) {
-                    console.log('API error, trying public access');
-                }
-            }
-            
             try {
                 const timestamp = Date.now();
-                const random = Math.random().toString(36).substring(7);
-                const response = await fetch(`https://raw.githubusercontent.com/${REPO_USERNAME}/${REPO_NAME}/main/products.json?t=${timestamp}&r=${random}`, {
-                    cache: 'no-store',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache'
-                    }
-                });
+                const response = await fetch(`./products.json?t=${timestamp}`);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    products = Array.isArray(data) ? data : (data.products || []);
+                    if (Array.isArray(data)) {
+                        products = data;
+                    } else if (data.products && Array.isArray(data.products)) {
+                        products = data.products;
+                    } else if (data.items && Array.isArray(data.items)) {
+                        products = data.items;
+                    } else {
+                        products = [];
+                    }
                 } else {
                     products = [];
                 }
@@ -895,12 +857,10 @@
 
         async function saveProductsToGitHub() {
             if (!isAdminMode) {
-                alert('Только администратор может сохранять товары');
                 return false;
             }
             
             if (!githubConfig) {
-                alert('GitHub не настроен. Настройте доступ к репозиторию.');
                 return false;
             }
 
@@ -957,7 +917,6 @@
 
             } catch (error) {
                 console.error('Save error:', error);
-                alert('Ошибка сохранения товаров: ' + error.message);
                 return false;
             }
         }
@@ -1223,7 +1182,6 @@
                         </button>
                     </div>
                 `;
-                // Обновляем синхронизацию для новых элементов
                 setupColorPickerSync();
             });
 
@@ -1337,7 +1295,6 @@
                 `;
                 container.appendChild(div);
                 div.querySelector('.remove-color').addEventListener('click', () => div.remove());
-                // Сразу добавляем обработчик для нового color picker
                 const colorPicker = div.querySelector('.color-picker');
                 const hexInput = div.querySelector('.color-hex');
                 colorPicker.addEventListener('input', () => {
