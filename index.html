@@ -220,12 +220,10 @@
             border: 2px solid #f3f4f6;
             cursor: pointer;
             transition: transform 0.2s ease;
-            position: relative;
         }
 
         .color-circle:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
         }
 
         .color-circle.selected {
@@ -308,6 +306,18 @@
             background-color: #dc2626;
         }
 
+        .uploaded-image-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .uploaded-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+
         @media (max-width: 768px) {
             .product-grid {
                 grid-template-columns: 1fr !important;
@@ -321,37 +331,6 @@
             .gallery-main {
                 height: 300px;
             }
-        }
-
-        /* Улучшенные подсказки для цветов */
-        .color-circle[title]:hover::after {
-            content: attr(title);
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1A1A1A;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .color-circle[title]:hover::before {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-bottom: 5px solid #1A1A1A;
-            z-index: 10;
         }
     </style>
 </head>
@@ -468,7 +447,6 @@
         </div>
     </div>
 
-    <!-- Остальные модальные окна остаются без изменений -->
     <div id="reset-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div id="reset-backdrop" class="absolute inset-0 bg-black/50"></div>
 
@@ -524,7 +502,7 @@
         </div>
     </div>
 
-    <!-- Обновленное модальное окно админки -->
+    <!-- Обновленное модальное окно админки с загрузкой файлов -->
     <div id="admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div id="admin-backdrop" class="absolute inset-0 bg-black/50"></div>
 
@@ -566,8 +544,27 @@
                                 </div>
                                 <button type="button" id="add-image-btn" class="btn-secondary text-sm mt-2">
                                     <i data-lucide="plus" class="w-3 h-3 mr-1"></i>
-                                    Добавить еще фото
+                                    Добавить еще фото (URL)
                                 </button>
+                                
+                                <!-- Область загрузки файлов -->
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium mb-2">Или загрузите фото</label>
+                                    <div id="file-upload-container" class="file-upload-container">
+                                        <input type="file" id="image-file" accept="image/*" class="hidden" multiple>
+                                        <div class="space-y-2">
+                                            <i data-lucide="upload" class="w-8 h-8 mx-auto text-gray-400"></i>
+                                            <p class="text-sm text-gray-500">Перетащите сюда фото или</p>
+                                            <button type="button" id="browse-files" class="btn-secondary">
+                                                Выбрать файлы
+                                            </button>
+                                            <p class="text-xs text-gray-400 mt-1">JPG, PNG, WebP (макс. 5MB)</p>
+                                        </div>
+                                    </div>
+                                    <div id="uploaded-images" class="mt-3">
+                                        <!-- Загруженные фото будут отображаться здесь -->
+                                    </div>
+                                </div>
                             </div>
 
                             <div>
@@ -645,9 +642,9 @@
         let products = [];
         let isAdminMode = false;
         let githubConfig = null;
-        let expandedCardId = null;
         let currentProduct = null;
         let selectedColor = null;
+        let uploadedImagesData = []; // Хранит DataURL загруженных изображений
 
         const SECRET_ADMIN_CODE = "bagsad";
         const REPO_USERNAME = "wizzym3";
@@ -713,8 +710,7 @@
             const fileInput = document.getElementById('image-file');
             const browseBtn = document.getElementById('browse-files');
             const uploadContainer = document.getElementById('file-upload-container');
-            const imagePreview = document.getElementById('image-preview');
-            const imageUrlInput = document.getElementById('image-url');
+            const uploadedImagesContainer = document.getElementById('uploaded-images');
 
             if (browseBtn) browseBtn.addEventListener('click', () => fileInput.click());
             if (uploadContainer) {
@@ -750,35 +746,68 @@
                 uploadContainer.addEventListener('drop', (e) => {
                     const files = e.dataTransfer.files;
                     if (files.length > 0) {
-                        handleImageFile(files[0]);
+                        handleImageFiles(files);
                     }
                 });
 
                 fileInput.addEventListener('change', (e) => {
                     if (e.target.files.length > 0) {
-                        handleImageFile(e.target.files[0]);
+                        handleImageFiles(e.target.files);
                     }
                 });
             }
 
-            function handleImageFile(file) {
-                if (!file.type.match('image.*')) {
-                    alert('Пожалуйста, выберите файл изображения (JPG, PNG, WebP)');
-                    return;
-                }
+            function handleImageFiles(files) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    
+                    if (!file.type.match('image.*')) {
+                        alert('Пожалуйста, выберите только файлы изображений (JPG, PNG, WebP)');
+                        continue;
+                    }
 
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('Файл слишком большой. Максимальный размер: 5MB');
-                    return;
-                }
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert(`Файл "${file.name}" слишком большой. Максимальный размер: 5MB`);
+                        continue;
+                    }
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagePreview.src = e.target.result;
-                    imagePreview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const imageData = e.target.result;
+                        uploadedImagesData.push(imageData);
+                        displayUploadedImage(imageData);
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
+
+            function displayUploadedImage(imageData) {
+                const container = document.getElementById('uploaded-images');
+                const div = document.createElement('div');
+                div.className = 'uploaded-image-container';
+                div.innerHTML = `
+                    <img src="${imageData}" class="uploaded-image" alt="Загруженное изображение">
+                    <button type="button" class="remove-image btn-danger text-sm" onclick="removeUploadedImage(this)">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i> Удалить
+                    </button>
+                `;
+                container.appendChild(div);
+                lucide.createIcons();
+            }
+        }
+
+        function removeUploadedImage(button) {
+            const container = button.closest('.uploaded-image-container');
+            const img = container.querySelector('img');
+            const imgSrc = img.src;
+            
+            // Удаляем из массива uploadedImagesData
+            const index = uploadedImagesData.indexOf(imgSrc);
+            if (index > -1) {
+                uploadedImagesData.splice(index, 1);
+            }
+            
+            container.remove();
         }
 
         async function loadProducts() {
@@ -798,7 +827,8 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        const content = JSON.parse(atob(data.content));
+                        const decodedContent = decodeBase64UTF8(data.content);
+                        const content = JSON.parse(decodedContent);
                         products = Array.isArray(content) ? content : (content.products || []);
                         renderProducts();
                         return;
@@ -831,6 +861,15 @@
             }
             
             renderProducts();
+        }
+
+        function decodeBase64UTF8(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return new TextDecoder('utf-8').decode(bytes);
         }
 
         async function saveProductsToGitHub() {
@@ -1152,6 +1191,8 @@
                         <input type="url" name="images[]" class="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="https://example.com/image1.jpg">
                     </div>
                 `;
+                document.getElementById('uploaded-images').innerHTML = '';
+                uploadedImagesData = [];
                 document.getElementById('colors-container').innerHTML = `
                     <div class="flex items-center mb-2">
                         <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
@@ -1200,6 +1241,9 @@
                     .map(input => input.value.trim())
                     .filter(url => url !== '');
 
+                // Добавляем загруженные изображения (DataURL) в массив images
+                const uploadedImages = [...uploadedImagesData];
+
                 const colorInputs = document.querySelectorAll('input[name="color_codes[]"]');
                 const colors = Array.from(colorInputs)
                     .map(input => input.value.trim())
@@ -1210,7 +1254,7 @@
                     title: title,
                     description: description,
                     price: price,
-                    images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop'],
+                    images: images.length > 0 || uploadedImages.length > 0 ? [...images, ...uploadedImages] : ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop'],
                     colors: colors
                 };
 
@@ -1224,6 +1268,8 @@
                             <input type="url" name="images[]" class="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="https://example.com/image1.jpg">
                         </div>
                     `;
+                    document.getElementById('uploaded-images').innerHTML = '';
+                    uploadedImagesData = [];
                     document.getElementById('colors-container').innerHTML = `
                         <div class="flex items-center mb-2">
                             <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
