@@ -113,20 +113,34 @@
             background-color: #d97706;
         }
 
-        #admin-modal, #github-modal, #reset-modal {
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            border: 1px solid #6b7280;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+        #admin-modal, #github-modal, #reset-modal, #product-modal {
             transition: opacity 0.3s ease;
         }
 
-        #admin-modal .relative, #github-modal .relative, #reset-modal .relative {
+        #admin-modal .relative, #github-modal .relative, #reset-modal .relative, #product-modal .relative {
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        #admin-modal:not(.hidden) .relative, #github-modal:not(.hidden) .relative, #reset-modal:not(.hidden) .relative {
+        #admin-modal:not(.hidden) .relative, #github-modal:not(.hidden) .relative, #reset-modal:not(.hidden) .relative, #product-modal:not(.hidden) .relative {
             transform: translateY(0);
             opacity: 1;
         }
 
-        #admin-modal.hidden .relative, #github-modal.hidden .relative, #reset-modal.hidden .relative {
+        #admin-modal.hidden .relative, #github-modal.hidden .relative, #reset-modal.hidden .relative, #product-modal.hidden .relative {
             transform: translateY(-20px);
             opacity: 0;
         }
@@ -144,24 +158,6 @@
             border-color: #1A1A1A;
             transform: translateY(-4px);
             box-shadow: 0 8px 24px rgba(26, 26, 26, 0.08);
-        }
-
-        .product-card.expanded {
-            grid-column: 1 / -1;
-            max-width: 800px;
-            margin: 0 auto;
-            z-index: 10;
-        }
-
-        .product-card.expanded .product-details {
-            display: block;
-        }
-
-        .product-details {
-            display: none;
-            padding: 1.5rem;
-            border-top: 1px solid #f0f0f0;
-            animation: fadeIn 0.3s ease;
         }
 
         .file-upload-container {
@@ -215,14 +211,114 @@
             animation: fadeIn 0.3s ease;
         }
 
-        @media (max-width: 768px) {
-            .product-card.expanded {
-                max-width: 100%;
-            }
+        .color-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+            border: 2px solid #f3f4f6;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
 
+        .color-circle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        .color-circle.selected {
+            box-shadow: 0 0 0 2px #1A1A1A;
+        }
+
+        .product-gallery {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-gallery img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .product-gallery img:hover {
+            transform: scale(1.02);
+        }
+
+        .gallery-main {
+            height: 400px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .gallery-thumbnails {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .gallery-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-thumbnail:hover, .gallery-thumbnail.active {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        .image-input-container {
+            margin-bottom: 1rem;
+        }
+
+        .image-input-container input {
+            margin-bottom: 0.5rem;
+        }
+
+        .remove-image, .remove-color {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            font-size: 12px;
+        }
+
+        .remove-image:hover, .remove-color:hover {
+            background-color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
             .product-grid {
                 grid-template-columns: 1fr !important;
                 gap: 1.5rem !important;
+            }
+            
+            .product-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .gallery-main {
+                height: 300px;
             }
         }
     </style>
@@ -260,7 +356,7 @@
                     JOLIES<span class="font-medium"></span>
                 </h1>
                 <p class="text-gray-600 text-lg md:text-xl mb-10 max-w-2xl">
-                    Удобные сумки, созданные для современной жизни. Качественые материалы, дизайн и функциональность.
+                    Удобные сумки, созданные для современной жизни. Качественные материалы, дизайн и функциональность.
                 </p>
                 <a href="#product-grid" class="btn-primary inline-block">
                     Смотреть коллекцию
@@ -291,11 +387,56 @@
                     </div>
                     <p class="text-gray-500 text-sm mt-2">© 2026 Все права защищены</p>
                 </div>
-                <a href="?admin=jolies2024" class="secret-code">Доступ для администратора</a>
+                <a href="?admin=bagsad" class="secret-code">Доступ для администратора</a>
             </div>
         </div>
     </footer>
 
+    <!-- Модальное окно товара -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div id="product-backdrop" class="absolute inset-0 bg-black/50"></div>
+
+        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="product-modal-title" class="text-xl font-medium"></h3>
+                    <button id="close-product" class="p-2 hover:bg-gray-100 rounded-full">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <img id="product-main-image" src="" alt="" class="gallery-main w-full">
+                        
+                        <div id="product-thumbnails" class="gallery-thumbnails">
+                            <!-- Миниатюры будут добавлены через JS -->
+                        </div>
+                    </div>
+
+                    <div>
+                        <p id="product-modal-description" class="text-gray-600 mb-4"></p>
+                        <p id="product-modal-price" class="text-2xl font-medium mb-6"></p>
+
+                        <div class="mb-6">
+                            <h4 class="font-medium mb-3">Доступные цвета:</h4>
+                            <div id="product-colors" class="flex flex-wrap gap-3">
+                                <!-- Цвета будут добавлены через JS -->
+                            </div>
+                            <p id="selected-color-info" class="text-sm text-gray-500 mt-2"></p>
+                        </div>
+
+                        <button id="order-telegram" class="w-full btn-primary">
+                            <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i>
+                            Заказать в Telegram
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Остальные модальные окна остаются без изменений -->
     <div id="reset-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div id="reset-backdrop" class="absolute inset-0 bg-black/50"></div>
 
@@ -351,6 +492,7 @@
         </div>
     </div>
 
+    <!-- Обновленное модальное окно админки -->
     <div id="admin-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div id="admin-backdrop" class="absolute inset-0 bg-black/50"></div>
 
@@ -382,23 +524,35 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Изображение товара</label>
-                            <div class="file-upload-container" id="file-upload-container">
-                                <i data-lucide="upload" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
-                                <p class="text-gray-600 mb-2">Перетащите фото сюда или</p>
-                                <button type="button" id="browse-files" class="btn-secondary text-sm px-4 py-2 mb-2">
-                                    Выбрать файл
-                                </button>
-                                <p class="text-xs text-gray-500">PNG, JPG, WebP до 5MB</p>
-                                <input type="file" id="image-file" name="imageFile" accept=".jpg,.jpeg,.png,.webp" class="hidden">
-
-                                <img id="image-preview" class="file-preview hidden" alt="Превью изображения">
-
-                                <div class="mt-4 pt-4 border-t border-gray-200">
-                                    <p class="text-sm text-gray-500 mb-2">Или укажите URL изображения:</p>
-                                    <input type="url" name="imageUrl" id="image-url" class="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="https://example.com/image.jpg">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Изображения</label>
+                                <div id="images-container">
+                                    <div class="image-input-container">
+                                        <input type="url" name="images[]" class="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="https://example.com/image1.jpg">
+                                    </div>
                                 </div>
+                                <button type="button" id="add-image-btn" class="btn-secondary text-sm mt-2">
+                                    <i data-lucide="plus" class="w-3 h-3 mr-1"></i>
+                                    Добавить еще фото
+                                </button>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Цвета (HEX коды)</label>
+                                <div id="colors-container">
+                                    <div class="flex items-center mb-2">
+                                        <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
+                                        <input type="text" name="color_codes[]" class="flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)">
+                                        <button type="button" class="remove-color btn-secondary text-sm ml-2">
+                                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" id="add-color-btn" class="btn-secondary text-sm mt-2">
+                                    <i data-lucide="plus" class="w-3 h-3 mr-1"></i>
+                                    Добавить цвет
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -460,9 +614,10 @@
         let isAdminMode = false;
         let githubConfig = null;
         let expandedCardId = null;
-        let imageBase64 = null;
+        let currentProduct = null;
+        let selectedColor = null;
 
-        const SECRET_ADMIN_CODE = "jolies2024";
+        const SECRET_ADMIN_CODE = "bagsad";
         const REPO_USERNAME = "wizzym3";
         const REPO_NAME = "bags";
 
@@ -501,6 +656,7 @@
             document.getElementById('admin-modal').classList.add('hidden');
             document.getElementById('github-modal').classList.add('hidden');
             document.getElementById('reset-modal').classList.add('hidden');
+            document.getElementById('product-modal').classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
             
             window.location.href = window.location.pathname;
@@ -528,59 +684,50 @@
             const imagePreview = document.getElementById('image-preview');
             const imageUrlInput = document.getElementById('image-url');
 
-            browseBtn.addEventListener('click', () => fileInput.click());
-
-            uploadContainer.addEventListener('click', (e) => {
-                if (e.target !== browseBtn && e.target !== fileInput) {
-                    fileInput.click();
-                }
-            });
-
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                uploadContainer.addEventListener(eventName, preventDefaults, false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
+            if (browseBtn) browseBtn.addEventListener('click', () => fileInput.click());
+            if (uploadContainer) {
+                uploadContainer.addEventListener('click', (e) => {
+                    if (e.target !== browseBtn && e.target !== fileInput && fileInput) {
+                        fileInput.click();
+                    }
+                });
             }
 
-            ['dragenter', 'dragover'].forEach(eventName => {
-                uploadContainer.addEventListener(eventName, () => {
-                    uploadContainer.classList.add('dragover');
+            if (fileInput) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    uploadContainer.addEventListener(eventName, preventDefaults, false);
                 });
-            });
 
-            ['dragleave', 'drop'].forEach(eventName => {
-                uploadContainer.addEventListener(eventName, () => {
-                    uploadContainer.classList.remove('dragover');
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    uploadContainer.addEventListener(eventName, () => {
+                        uploadContainer.classList.add('dragover');
+                    });
                 });
-            });
 
-            uploadContainer.addEventListener('drop', (e) => {
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handleImageFile(files[0]);
-                }
-            });
+                ['dragleave', 'drop'].forEach(eventName => {
+                    uploadContainer.addEventListener(eventName, () => {
+                        uploadContainer.classList.remove('dragover');
+                    });
+                });
 
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handleImageFile(e.target.files[0]);
-                }
-            });
+                uploadContainer.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleImageFile(files[0]);
+                    }
+                });
 
-            fileInput.addEventListener('change', () => {
-                imageUrlInput.value = '';
-            });
-
-            imageUrlInput.addEventListener('input', () => {
-                if (imageUrlInput.value) {
-                    fileInput.value = '';
-                    imagePreview.classList.add('hidden');
-                    imageBase64 = null;
-                }
-            });
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleImageFile(e.target.files[0]);
+                    }
+                });
+            }
 
             function handleImageFile(file) {
                 if (!file.type.match('image.*')) {
@@ -597,11 +744,8 @@
                 reader.onload = (e) => {
                     imagePreview.src = e.target.result;
                     imagePreview.classList.remove('hidden');
-                    imageBase64 = e.target.result;
                 };
                 reader.readAsDataURL(file);
-
-                imageUrlInput.value = '';
             }
         }
 
@@ -731,38 +875,53 @@
             if (!productGrid) return;
 
             productGrid.innerHTML = products.map(product => `
-                <div class="product-card rounded-lg overflow-hidden ${expandedCardId === product.id ? 'expanded' : ''}"
-                     onclick="toggleProductCard(${product.id}, event)">
+                <div class="product-card rounded-lg overflow-hidden" onclick="openProductModal(${product.id})">
                     <div class="aspect-square overflow-hidden bg-gray-100">
-                        <img src="${product.image || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop'}"
+                        <img src="${product.images && product.images.length > 0 ? product.images[0] : 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop'}"
                              alt="${product.title}"
                              class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                        ${product.images && product.images.length > 1 ? 
+                            `<div class="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                                +${product.images.length - 1}
+                            </div>` : ''}
                     </div>
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-3">
+                    <div class="p-4">
+                        <div class="flex items-start justify-between mb-2">
                             <div class="flex-grow">
-                                <h3 class="text-lg font-medium mb-2">${product.title}</h3>
+                                <h3 class="text-lg font-medium mb-1">${product.title}</h3>
                                 <span class="text-xl font-medium">${product.price.toLocaleString()} ₽</span>
                             </div>
-                            <button onclick="orderProduct('${product.title}', event)"
-                                    class="btn-primary text-sm px-4 py-2 ml-4">
-                                Заказать
+                        </div>
+
+                        <p class="text-gray-500 text-sm mb-3 line-clamp-2">${product.description || ''}</p>
+
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                ${product.colors && product.colors.length > 0 ? 
+                                    product.colors.slice(0, 3).map(color => `
+                                        <div class="color-circle" style="background-color: ${color};" title="${color}"></div>
+                                    `).join('') : 
+                                    '<span class="text-gray-400 text-sm">Нет цветов</span>'
+                                }
+                                ${product.colors && product.colors.length > 3 ? 
+                                    `<span class="text-gray-500 text-sm ml-1">+${product.colors.length - 3}</span>` : ''
+                                }
+                            </div>
+                            <button onclick="event.stopPropagation(); openProductModal(${product.id})" 
+                                    class="btn-primary text-sm px-4 py-2">
+                                Подробнее
                             </button>
                         </div>
 
-                        <div class="product-details">
-                            <p class="text-gray-600 mb-4">${product.description || 'Описание отсутствует'}</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-500">Артикул: #${product.id}</span>
-                                ${isAdminMode ? `
-                                    <button onclick="deleteProduct(${product.id}, event)"
-                                            class="btn-danger">
-                                        <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
-                                        Удалить
-                                    </button>
-                                ` : ''}
+                        ${isAdminMode ? `
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <button onclick="event.stopPropagation(); deleteProduct(${product.id}, event)"
+                                        class="btn-danger w-full">
+                                    <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
+                                    Удалить
+                                </button>
                             </div>
-                        </div>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
@@ -794,31 +953,88 @@
             }
         }
 
-        function toggleProductCard(productId, event) {
-            if (event.target.closest('button')) return;
+        function openProductModal(productId) {
+            currentProduct = products.find(p => p.id === productId);
+            if (!currentProduct) return;
 
-            expandedCardId = expandedCardId === productId ? null : productId;
-            renderProducts();
+            selectedColor = currentProduct.colors && currentProduct.colors.length > 0 ? currentProduct.colors[0] : null;
 
-            if (expandedCardId) {
-                const expandedCard = document.querySelector(`[onclick*="${productId}"]`);
-                if (expandedCard) {
-                    expandedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+            document.getElementById('product-modal-title').textContent = currentProduct.title;
+            document.getElementById('product-modal-description').textContent = currentProduct.description || 'Описание отсутствует';
+            document.getElementById('product-modal-price').textContent = `${currentProduct.price.toLocaleString()} ₽`;
+
+            const mainImage = document.getElementById('product-main-image');
+            const thumbnailsContainer = document.getElementById('product-thumbnails');
+            const colorsContainer = document.getElementById('product-colors');
+
+            if (currentProduct.images && currentProduct.images.length > 0) {
+                mainImage.src = currentProduct.images[0];
+                mainImage.alt = currentProduct.title;
+
+                thumbnailsContainer.innerHTML = currentProduct.images.map((image, index) => `
+                    <img src="${image}" alt="${currentProduct.title} - фото ${index + 1}" 
+                         class="gallery-thumbnail ${index === 0 ? 'active' : ''}"
+                         onclick="changeProductImage('${image}', this)">
+                `).join('');
+            } else {
+                mainImage.src = 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop';
+                thumbnailsContainer.innerHTML = '';
+            }
+
+            if (currentProduct.colors && currentProduct.colors.length > 0) {
+                colorsContainer.innerHTML = currentProduct.colors.map(color => `
+                    <div class="color-circle ${color === selectedColor ? 'selected' : ''}" 
+                         style="background-color: ${color};" 
+                         title="${color}"
+                         onclick="selectColor('${color}', this)">
+                    </div>
+                `).join('');
+                updateSelectedColorInfo();
+            } else {
+                colorsContainer.innerHTML = '<p class="text-gray-500">Цвета не указаны</p>';
+                document.getElementById('selected-color-info').textContent = '';
+            }
+
+            document.getElementById('product-modal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function changeProductImage(imageUrl, element) {
+            document.getElementById('product-main-image').src = imageUrl;
+            document.querySelectorAll('.gallery-thumbnail').forEach(img => img.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function selectColor(color, element) {
+            selectedColor = color;
+            document.querySelectorAll('.color-circle').forEach(circle => circle.classList.remove('selected'));
+            element.classList.add('selected');
+            updateSelectedColorInfo();
+        }
+
+        function updateSelectedColorInfo() {
+            const info = document.getElementById('selected-color-info');
+            if (selectedColor) {
+                info.textContent = `Выбран цвет: ${selectedColor}`;
+            } else {
+                info.textContent = '';
             }
         }
 
-        function orderProduct(productName, event) {
-            event.stopPropagation();
+        function orderProductTelegram() {
+            if (!currentProduct) return;
+
+            let message = `Заказ: ${currentProduct.title}`;
+            if (selectedColor) {
+                message += `\nЦвет: ${selectedColor}`;
+            }
 
             const telegramUrl = `https://t.me/qimeoq`;
-            const message = `Заказ: ${productName}`;
             const encodedMessage = encodeURIComponent(message);
             const fullUrl = `${telegramUrl}?text=${encodedMessage}`;
 
             window.open(fullUrl, '_blank');
-
-            showNotification(`Запрос на заказ отправлен`);
+            showNotification('Переход в Telegram для заказа');
         }
 
         async function deleteProduct(productId, event) {
@@ -828,8 +1044,10 @@
 
             if (confirm('Удалить этот товар?')) {
                 products = products.filter(p => p.id !== productId);
-                if (expandedCardId === productId) {
-                    expandedCardId = null;
+                if (currentProduct && currentProduct.id === productId) {
+                    document.getElementById('product-modal').classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                    currentProduct = null;
                 }
                 const success = await saveProductsToGitHub();
                 if (success) {
@@ -897,8 +1115,20 @@
 
                 const form = document.getElementById('add-product-form');
                 form.reset();
-                document.getElementById('image-preview').classList.add('hidden');
-                imageBase64 = null;
+                document.getElementById('images-container').innerHTML = `
+                    <div class="image-input-container">
+                        <input type="url" name="images[]" class="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="https://example.com/image1.jpg">
+                    </div>
+                `;
+                document.getElementById('colors-container').innerHTML = `
+                    <div class="flex items-center mb-2">
+                        <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
+                        <input type="text" name="color_codes[]" class="flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)">
+                        <button type="button" class="remove-color btn-secondary text-sm ml-2">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                `;
             });
 
             document.getElementById('admin-backdrop').addEventListener('click', () => {
@@ -932,23 +1162,24 @@
                 const title = formData.get('title');
                 const description = formData.get('description');
                 const price = parseInt(formData.get('price'));
-                const imageUrl = formData.get('imageUrl');
 
-                let imageSource;
-                if (imageBase64 && imageBase64.length < 100000) {
-                    imageSource = imageBase64;
-                } else if (imageUrl) {
-                    imageSource = imageUrl;
-                } else {
-                    imageSource = 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop';
-                }
+                const imageInputs = document.querySelectorAll('input[name="images[]"]');
+                const images = Array.from(imageInputs)
+                    .map(input => input.value.trim())
+                    .filter(url => url !== '');
+
+                const colorInputs = document.querySelectorAll('input[name="color_codes[]"]');
+                const colors = Array.from(colorInputs)
+                    .map(input => input.value.trim())
+                    .filter(color => color !== '' && /^#[0-9A-Fa-f]{6}$/.test(color));
 
                 const newProduct = {
                     id: Date.now(),
                     title: title,
                     description: description,
                     price: price,
-                    image: imageSource
+                    images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=500&fit=crop'],
+                    colors: colors
                 };
 
                 products.push(newProduct);
@@ -956,13 +1187,78 @@
 
                 if (success) {
                     this.reset();
-                    document.getElementById('image-preview').classList.add('hidden');
-                    imageBase64 = null;
+                    document.getElementById('images-container').innerHTML = `
+                        <div class="image-input-container">
+                            <input type="url" name="images[]" class="w-full px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="https://example.com/image1.jpg">
+                        </div>
+                    `;
+                    document.getElementById('colors-container').innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
+                            <input type="text" name="color_codes[]" class="flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)">
+                            <button type="button" class="remove-color btn-secondary text-sm ml-2">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    `;
 
                     renderProducts();
                     document.getElementById('admin-modal').classList.add('hidden');
                     document.body.classList.remove('overflow-hidden');
                 }
+            });
+
+            document.getElementById('add-image-btn').addEventListener('click', () => {
+                const container = document.getElementById('images-container');
+                const div = document.createElement('div');
+                div.className = 'image-input-container';
+                div.innerHTML = `
+                    <div class="flex">
+                        <input type="url" name="images[]" class="flex-grow px-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="https://example.com/image.jpg">
+                        <button type="button" class="remove-image btn-secondary text-sm ml-2">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+                div.querySelector('.remove-image').addEventListener('click', () => div.remove());
+            });
+
+            document.getElementById('add-color-btn').addEventListener('click', () => {
+                const container = document.getElementById('colors-container');
+                const div = document.createElement('div');
+                div.className = 'flex items-center mb-2';
+                div.innerHTML = `
+                    <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
+                    <input type="text" name="color_codes[]" class="flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)">
+                    <button type="button" class="remove-color btn-secondary text-sm ml-2">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+                div.querySelector('.remove-color').addEventListener('click', () => div.remove());
+            });
+
+            document.getElementById('close-product').addEventListener('click', () => {
+                document.getElementById('product-modal').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                currentProduct = null;
+                selectedColor = null;
+            });
+
+            document.getElementById('product-backdrop').addEventListener('click', () => {
+                document.getElementById('product-modal').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                currentProduct = null;
+                selectedColor = null;
+            });
+
+            document.getElementById('order-telegram').addEventListener('click', orderProductTelegram);
+
+            document.querySelectorAll('.remove-color').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.flex').remove();
+                });
             });
         }
 
