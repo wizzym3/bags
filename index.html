@@ -292,7 +292,6 @@
         </div>
     </footer>
 
-    <!-- Модальное окно сброса данных -->
     <div id="reset-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div id="reset-backdrop" class="absolute inset-0 bg-black/50"></div>
 
@@ -460,6 +459,8 @@
         let imageBase64 = null;
 
         const SECRET_ADMIN_CODE = "jolies2024";
+        const REPO_USERNAME = "wizzym3";
+        const REPO_NAME = "bags";
 
         function checkAdminMode() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -468,17 +469,17 @@
             if (adminCode === SECRET_ADMIN_CODE) {
                 isAdminMode = true;
                 document.body.classList.add('admin-mode');
-
-                loadGitHubConfig();
             }
+            
+            loadGitHubConfig();
         }
 
         function loadGitHubConfig() {
             const savedConfig = localStorage.getItem('jolies_github_config');
             if (savedConfig) {
                 githubConfig = JSON.parse(savedConfig);
-            } else {
-                showGitHubModal();
+            } else if (isAdminMode) {
+                setTimeout(() => showGitHubModal(), 500);
             }
         }
 
@@ -488,31 +489,24 @@
         }
 
         function resetAdminData() {
-            // Удаляем все локальные данные
             localStorage.removeItem('jolies_github_config');
-            
-            // Сбрасываем переменные
             githubConfig = null;
             isAdminMode = false;
-            
-            // Убираем класс админ-режима
             document.body.classList.remove('admin-mode');
             
-            // Скрываем админ-модальные окна если они открыты
             document.getElementById('admin-modal').classList.add('hidden');
             document.getElementById('github-modal').classList.add('hidden');
             document.getElementById('reset-modal').classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
             
-            // Перезагружаем страницу без параметра админа
             window.location.href = window.location.pathname;
         }
 
         async function initShop() {
             checkAdminMode();
-            if (githubConfig) {
-                await loadProductsFromGitHub();
-            }
+            
+            await loadProducts();
+            
             setupEventListeners();
             setupFileUpload();
         }
@@ -601,55 +595,56 @@
             }
         }
 
-        async function loadProductsFromGitHub() {
-            if (!githubConfig) {
-                console.log('GitHub не настроен');
-                return;
-            }
-
-            try {
-                const response = await fetch(
-                    `https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/products.json`,
-                    {
-                        headers: {
-                            'Accept': 'application/vnd.github+json',
-                            'Authorization': `Bearer ${githubConfig.token}`,
-                            'X-GitHub-Api-Version': '2022-11-28'
+        async function loadProducts() {
+            if (isAdminMode && githubConfig && githubConfig.token) {
+                try {
+                    const response = await fetch(
+                        `https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/products.json`,
+                        {
+                            headers: {
+                                'Accept': 'application/vnd.github+json',
+                                'Authorization': `Bearer ${githubConfig.token}`,
+                                'X-GitHub-Api-Version': '2022-11-28'
+                            }
                         }
-                    }
-                );
+                    );
 
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        products = [];
+                    if (response.ok) {
+                        const data = await response.json();
+                        const content = JSON.parse(atob(data.content));
+                        products = Array.isArray(content) ? content : (content.products || []);
                         renderProducts();
                         return;
                     }
-                    throw new Error(`Ошибка GitHub API: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const content = JSON.parse(atob(data.content));
-                products = content;
-
-                renderProducts();
-            } catch (error) {
-                console.error('Ошибка загрузки товаров:', error);
-                const productGrid = document.getElementById('product-grid');
-                if (productGrid) {
-                    productGrid.innerHTML = `
-                        <div class="col-span-full text-center py-10 text-red-600">
-                            <i data-lucide="alert-circle" class="w-12 h-12 mx-auto mb-4"></i>
-                            <p>Не удалось загрузить товары</p>
-                            <p class="text-sm text-gray-500 mt-2">${error.message}</p>
-                        </div>
-                    `;
-                    lucide.createIcons();
+                } catch (error) {
+                    console.log('API error, trying public access');
                 }
             }
+            
+            try {
+                const timestamp = Date.now();
+                const response = await fetch(`https://raw.githubusercontent.com/${REPO_USERNAME}/${REPO_NAME}/main/products.json?t=${timestamp}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    products = Array.isArray(data) ? data : (data.products || []);
+                } else {
+                    products = [];
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                products = [];
+            }
+            
+            renderProducts();
         }
 
         async function saveProductsToGitHub() {
+            if (!isAdminMode) {
+                alert('Только администратор может сохранять товары');
+                return false;
+            }
+            
             if (!githubConfig) {
                 alert('GitHub не настроен. Настройте доступ к репозиторию.');
                 return false;
@@ -697,12 +692,12 @@
                     throw new Error('Не удалось сохранить товары');
                 }
 
-                showNotification('Товары успешно сохранены');
+                showNotification('Товары успешно сохранены в GitHub');
                 return true;
 
             } catch (error) {
-                console.error('Ошибка сохранения товаров:', error);
-                alert('Ошибка сохранения товаров');
+                console.error('Save error:', error);
+                alert('Ошибка сохранения товаров: ' + error.message);
                 return false;
             }
         }
@@ -855,10 +850,8 @@
         }
 
         function setupEventListeners() {
-            // Кнопка сброса данных
             document.getElementById('reset-admin-btn').addEventListener('click', showResetModal);
             
-            // Обработчики модального окна сброса
             document.getElementById('close-reset').addEventListener('click', hideResetModal);
             document.getElementById('reset-backdrop').addEventListener('click', hideResetModal);
             document.getElementById('cancel-reset').addEventListener('click', hideResetModal);
@@ -897,7 +890,7 @@
                 saveGitHubConfig(config);
                 hideGitHubModal();
 
-                await loadProductsFromGitHub();
+                await loadProducts();
             });
 
             document.getElementById('close-github').addEventListener('click', hideGitHubModal);
@@ -913,7 +906,7 @@
                 const imageUrl = formData.get('imageUrl');
 
                 let imageSource;
-                if (imageBase64) {
+                if (imageBase64 && imageBase64.length < 100000) {
                     imageSource = imageBase64;
                 } else if (imageUrl) {
                     imageSource = imageUrl;
