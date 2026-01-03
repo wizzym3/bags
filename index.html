@@ -571,8 +571,8 @@
                                 <label class="block text-sm font-medium mb-2">Цвета (HEX коды)</label>
                                 <div id="colors-container">
                                     <div class="flex items-center mb-2">
-                                        <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
-                                        <input type="text" name="color_codes[]" class="flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)">
+                                        <input type="color" name="colors[]" class="color-picker w-10 h-10 mr-2 cursor-pointer" value="#000000">
+                                        <input type="text" name="color_codes[]" class="color-hex flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)" value="#000000">
                                         <button type="button" class="remove-color btn-secondary text-sm ml-2">
                                             <i data-lucide="trash-2" class="w-3 h-3"></i>
                                         </button>
@@ -644,7 +644,7 @@
         let githubConfig = null;
         let currentProduct = null;
         let selectedColor = null;
-        let uploadedImagesData = []; // Хранит DataURL загруженных изображений
+        let uploadedImagesData = [];
 
         const SECRET_ADMIN_CODE = "bagsad";
         const REPO_USERNAME = "wizzym3";
@@ -698,6 +698,7 @@
             
             setupEventListeners();
             setupFileUpload();
+            setupColorPickerSync();
             
             if (!isAdminMode) {
                 setInterval(async () => {
@@ -796,12 +797,32 @@
             }
         }
 
+        function setupColorPickerSync() {
+            // Обработчик для изменения цвета в color picker
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('color-picker')) {
+                    const colorPicker = e.target;
+                    const hexInput = colorPicker.closest('.flex').querySelector('.color-hex');
+                    hexInput.value = colorPicker.value.toUpperCase();
+                }
+                
+                // Также синхронизируем при изменении HEX вручную
+                if (e.target.classList.contains('color-hex')) {
+                    const hexInput = e.target;
+                    const colorPicker = hexInput.closest('.flex').querySelector('.color-picker');
+                    const hexValue = hexInput.value;
+                    if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
+                        colorPicker.value = hexValue.toUpperCase();
+                    }
+                }
+            });
+        }
+
         function removeUploadedImage(button) {
             const container = button.closest('.uploaded-image-container');
             const img = container.querySelector('img');
             const imgSrc = img.src;
             
-            // Удаляем из массива uploadedImagesData
             const index = uploadedImagesData.indexOf(imgSrc);
             if (index > -1) {
                 uploadedImagesData.splice(index, 1);
@@ -1195,13 +1216,15 @@
                 uploadedImagesData = [];
                 document.getElementById('colors-container').innerHTML = `
                     <div class="flex items-center mb-2">
-                        <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
-                        <input type="text" name="color_codes[]" class="flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)">
+                        <input type="color" name="colors[]" class="color-picker w-10 h-10 mr-2 cursor-pointer" value="#000000">
+                        <input type="text" name="color_codes[]" class="color-hex flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)" value="#000000">
                         <button type="button" class="remove-color btn-secondary text-sm ml-2">
                             <i data-lucide="trash-2" class="w-3 h-3"></i>
                         </button>
                     </div>
                 `;
+                // Обновляем синхронизацию для новых элементов
+                setupColorPickerSync();
             });
 
             document.getElementById('admin-backdrop').addEventListener('click', () => {
@@ -1241,7 +1264,6 @@
                     .map(input => input.value.trim())
                     .filter(url => url !== '');
 
-                // Добавляем загруженные изображения (DataURL) в массив images
                 const uploadedImages = [...uploadedImagesData];
 
                 const colorInputs = document.querySelectorAll('input[name="color_codes[]"]');
@@ -1272,8 +1294,8 @@
                     uploadedImagesData = [];
                     document.getElementById('colors-container').innerHTML = `
                         <div class="flex items-center mb-2">
-                            <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
-                            <input type="text" name="color_codes[]" class="flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)">
+                            <input type="color" name="colors[]" class="color-picker w-10 h-10 mr-2 cursor-pointer" value="#000000">
+                            <input type="text" name="color_codes[]" class="color-hex flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)" value="#000000">
                             <button type="button" class="remove-color btn-secondary text-sm ml-2">
                                 <i data-lucide="trash-2" class="w-3 h-3"></i>
                             </button>
@@ -1307,14 +1329,26 @@
                 const div = document.createElement('div');
                 div.className = 'flex items-center mb-2';
                 div.innerHTML = `
-                    <input type="color" name="colors[]" class="w-10 h-10 mr-2 cursor-pointer">
-                    <input type="text" name="color_codes[]" class="flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)">
+                    <input type="color" name="colors[]" class="color-picker w-10 h-10 mr-2 cursor-pointer" value="#000000">
+                    <input type="text" name="color_codes[]" class="color-hex flex-grow px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-black" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Введите HEX код цвета (например, #FF0000)" value="#000000">
                     <button type="button" class="remove-color btn-secondary text-sm ml-2">
                         <i data-lucide="trash-2" class="w-3 h-3"></i>
                     </button>
                 `;
                 container.appendChild(div);
                 div.querySelector('.remove-color').addEventListener('click', () => div.remove());
+                // Сразу добавляем обработчик для нового color picker
+                const colorPicker = div.querySelector('.color-picker');
+                const hexInput = div.querySelector('.color-hex');
+                colorPicker.addEventListener('input', () => {
+                    hexInput.value = colorPicker.value.toUpperCase();
+                });
+                hexInput.addEventListener('input', () => {
+                    const hexValue = hexInput.value;
+                    if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
+                        colorPicker.value = hexValue.toUpperCase();
+                    }
+                });
             });
 
             document.getElementById('close-product').addEventListener('click', () => {
